@@ -23,7 +23,7 @@ Examples:
 The N color ID is a special ID with no color highlight, its use is to mark patterns to be included later on the filter window without highlighting them.
 
 
-###2) TEXT EXAMPLE:
+### 2) TEXT EXAMPLE:
 
 This is a little complex to explain so, let's write a text example to try the commands.
 Write the following lines to a new buffer:
