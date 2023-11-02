@@ -1,5 +1,7 @@
 # hi.vim
 
+First at https://www.vim.org/scripts/script.php?script_id=5887
+
 Vim plugin for text highlight and filter.
 
 This is a complex tool for log analysis. 
