@@ -1,0 +1,468 @@
+" Script Name: hi/tail.vim
+" Description: Highlight text patterns in different colors.
+"   Allows to save, reload and modify the highlighting configuration.
+"   Allows to filter by color the lines and show then on a new split/tab.
+"
+" Copyright:   (C) 2017-2020 Javier Puigdevall
+"   The VIM LICENSE applies to this script; see ':help copyright'.
+"
+" Maintainer:  Javier Puigdevall <javierpuigdevall@gmail.com>
+" Contributors:
+"
+" Dependencies:
+"   +job
+"   +timers
+"   jobs.vim
+"   rsync
+"
+
+if !exists('g:HiLoaded')
+    finish
+endif
+
+
+
+"- functions -------------------------------------------------------------------
+"
+let  s:HiTailDebug = 1
+
+function! s:Log(message)
+    if !exits("s:HiTailDebug")
+        return
+    endif
+    let s:HitTailLogList += [ l:message ]
+endfunction
+
+
+function! hi#tail#GetLog()
+    if !exits("s:HitTailLogList")
+        echo "ERROR. s:HitTailLogList not found" 
+    endif
+    tabedit
+    for message in s:HitTailLogList
+        put = l:message
+    endfor
+endfunction
+
+
+"
+" Update main and filter windows using a bash script that performs rsync and
+" diff.
+" Arg1: not used. Needed for using timers.
+function! s:Reload(emtpy)
+    call s:Log("Reload")
+    redraw
+    if exists("s:HiTailTimerTimeMsec") && s:HiTailTimerTimeMsec != ""
+        echo "Hi plugin: tail reload (Move cursor outside last line to stop updating). Iteration: ".s:HiTailNum.""
+    else
+        echo "Hi plugin: tail reload."
+    endif
+
+    let s:HiTailNum += 1
+
+    let jobName = "hiTail"
+
+    if jobs#IsOnWindow(l:jobName) == 1
+        call hi#log#Error("Hi Plugin. Command already running in background on this window")
+        call s:Log("Reload Command already running in background on this window")
+        silent call s:StopUpdating()
+        return
+    endif
+
+    let l:localFile = expand("%")
+    let l:remoteFile = expand("%")
+    if l:remoteFile[0:5] == "scp://"
+        let l:remoteFile = substitute(l:remoteFile, "scp://", "", "")
+        let l:remoteFile = substitute(l:remoteFile, "//", ":/", "")
+    endif
+
+    " Save current buffer into tmp file to be updated with rsync.
+    let tmpFile = tempname()
+    let tmpFile = getcwd()."/_hitail"
+    silent exec "silent w! ".l:tmpFile
+
+    " Save filter command into file.
+    silent exec("new ".l:tmpFile.".cmd")
+    silent normal ggdG
+    for line in s:HiTailFiltCmdList
+        silent put = l:line | silent normal ggdd
+        call s:Log("Add filter cmd: ".l:line)
+    endfor
+    silent w! | silent bd!
+
+    " Launch script asyncrhonous
+    let l:async = 1
+    let l:command  = s:plugin_path."/tail.sh ".l:remoteFile." ".l:tmpFile
+    let l:callback = ["hi#tail#ReloadCallback", l:tmpFile]
+    call s:Log("Reload RunCmd: ".l:command)
+
+    silent call jobs#RunCmd0(l:command,l:callback,l:async,l:jobName)
+    call s:Log("Reload end")
+    return 0
+endfunction
+
+
+" Rsync command end. Process command results.
+function! hi#tail#ReloadCallback(tmpFile, resultFile)
+    call s:Log("ReloadCallback")
+
+    " Mutex lock, prevent entering here while still updating content
+    " Prevent race condition if tail.sh script returns before we end previous
+    " iteration window content update.
+    if exists("s:HiTailLock")
+        while s:HiTailLock == 1 
+            call s:Log("ReloadCallback waiting unlocked")
+            sleep 200m
+        endwhile
+    endif
+    call s:Log("ReloadCallback unlocked")
+    "let s:HiTailLock = 1 
+
+    if exists("s:HiTailFile")
+        if expand("%") != s:HiTailFile
+            " Save current window and position
+            " In case we changed to another window/buffer
+            let l:lastWinnr = win_getid()
+            let l:lastPosition = winsaveview()
+        endif
+    endif
+
+    if exists("s:HiTailDebug")
+        " Add tail.sh script output to the log list.
+        silent exec("tabnew ".a:resultFile)
+        silent normal ggVG"ay
+        let l:lines = @a
+        call s:Log("Tail.sh file:".a:resultFile)
+        for line in split(l:lines,"\n")
+            call s:Log("   ".l:line)
+        endfor
+        silent bd!
+    endif
+    " DEBUG
+    "silent exec("tabnew ".a:resultFile)
+    "silent exec("new ".a:tmpFile)
+    "silent exec("new ".a:tmpFile.".updated")
+    "silent exec("new ".a:tmpFile.".cmd")
+    " DEBUG end
+
+    let file=a:tmpFile.".updated"
+    if !filereadable(l:file)
+        call hi#log#Error("Hi plugin. Update tail: rsync failed.")
+        call s:Log("ReloadCallback. Update tail: rsync failed.")
+        call s:StopUpdating()
+        "let s:HiTailLock = 0
+        return 1
+    endif
+
+    " Open the file updated with rync, remove old lines.
+    let file=a:tmpFile.".main"
+    if !filereadable(l:file)
+        call hi#log#Error("Hi plugin. Update tail: diff failed.")
+        call s:Log("ReloadCallback. Update tail: diff failed.")
+        call s:StopUpdating()
+        return 1
+    else
+        silent exec("tabedit ".l:file)
+        call s:Log("ReloadCallback. Main:".l:file." lines:".line("$"))
+        silent normal ggVG"ay
+        let l:mainLines = @a
+        silent bd!
+    endif
+
+    if exists("s:HiTailTimerTimeMsec") && s:HiTailTimerTimeMsec != "" && s:HiTailTimerTimeMsec >= 0
+        " Program timer to lauch again.
+        " Launch new update iteration before updating the content on each window. 
+        " This way we improve performance, as the rsync and diff launched on tail.sh will take some time.
+        call timer_start("", 'hi#tail#Reload', {'repeat':1})
+        let s:HiTailLock = 1
+        call s:Log("ReloadCallback locked")
+    else
+        let l:endMessage = "Hi plugin: tail reload."
+    endif
+
+    let cmd = "call delete(\"".a:tmpFile."*\")"
+    silent exec(l:cmd)
+    let l:stopUpdate = 0
+
+    " ------------------------------------------------
+    " MAIN WINDOW
+    " ------------------------------------------------
+    " Goto the main highlighted file
+    call win_gotoid(s:HiTailSavedWinnr)
+
+    if line('.') != line('$')
+        let l:mainPosition = winsaveview()
+        let l:stopUpdate = 1
+        let l:gotoEnd = 0
+    else
+        let l:gotoEnd = 1
+    endif
+
+    " Paste new lines at the end of the orginal file.
+    call hi#windowFamily#GotoFirstParentWindow()
+    silent normal G
+    silent put = l:mainLines
+    call s:Log("ReloadCallback. Main:".expand("%")." lines:".line("$"))
+
+    "if exists("l:mainPosition")
+        "call winrestview(l:mainPosition)
+    "else
+    if l:gotoEnd == 0
+        silent normal G
+    endif
+
+    " ------------------------------------------------
+    " FITER WINDOW
+    " ------------------------------------------------
+    " Goto each filter window and update the content
+    let i = 0
+    while hi#windowFamily#GotoFirstSon() == 0
+        let i += 1
+        call s:Log("ReloadCallback filterWindow".l:i)
+
+        " Search same filter configuration.
+        " Make sure the content we update matches the current window filter command
+        " Just in case some filter window has been closed.
+        if exists("w:HiFiltCmdExt")
+            continue
+        endif
+        let l:n = 1
+        let l:fileNum = 0
+        for filterCmd in s:HiTailFiltCmdList
+            if w:HiFiltCmdExt == l:filterCmd
+                let l:fileNum = l:n
+                call s:Log("ReloadCallback filterWindow".l:i." compare filterCmd".l:n." ok")
+            else
+                call s:Log("ReloadCallback filterWindow".l:i." compare filterCmd".l:n." failed")
+            endif
+            let l:n += 1
+        endfor
+        if l:fileNum == 0 | continue | endif
+
+        " Open the file updated and filtered.
+        let file=a:tmpFile.".filt".l:fileNum
+        if !filereadable(l:file)
+            call s:Log("ReloadCallback filterWindow".l:i." file:".l:file." not found.")
+            continue
+        endif
+
+        silent exec("new ".l:file)
+        call s:Log("ReloadCallback. Filt:".l:file." lines:".line("$"))
+        silent normal ggVG"ay
+        let l:filtLines = @a
+        silent bd!
+
+        let l:filtPosition = winsaveview()
+        if line('.') != line('$')
+            let l:stopUpdate = 1
+            let l:gotoEnd = 0
+        else
+            let l:gotoEnd = 1
+        endif
+
+        " Paste new lines at the end of the orginal file.
+        silent normal G
+        silent put = l:filtLines
+        " Delete empty extra line between old and new content.
+        call winrestview(l:filtPosition)
+        silent normal dd
+        call s:Log("ReloadCallback. Filt:".expand("%")." lines:".line("$"))
+
+        if l:gotoEnd == 0
+            silent normal G
+        endif
+    endwhile
+
+    " Goto the main highlighted window
+    call win_gotoid(s:HiTailSavedWinnr)
+
+    if exists("l:lastWinnr")
+        " Return postion to the last we were
+        " In case we changed to another window/buffer
+        call win_gotoid(l:lastWinnr)
+        call winrestview(l:lastPosition)
+    endif
+
+    if exists("l:endMessage")
+        echo l:endMessage
+    endif
+
+    let s:HiTailLock = 0
+    call s:Log("ReloadCallback unlock")
+
+    if l:stopUpdate == 1
+        call s:stopUpdate()
+    endif
+    call s:Log("ReloadCallback end")
+endfunction
+
+
+function! s:StopUpdating()
+    call s:Log("StopUpdating")
+
+    if exists("s:HiTailFile")
+        echo "Hi plugin. STOP tail (".s:HiTailNum.") ".s:HiTailFile
+        unlet s:HiTailFile
+        call timer_stopall()
+        call s:Log("StopUpdating stop timer")
+    endif
+
+    silent! unlet s:HiTailTimerTimeMsec
+    silent! unlet s:HiTailFiltCmdList
+    silent! unlet s:HiTailSavedWinnr
+    silent! unlet s:HiTailSavedPosition
+    silent! unlet s:HiTailLock
+    silent! unlet s:HiTailNum
+    call s:Log("StopUpdating end")
+
+    call hi#tail#GetLog()
+endfunction
+
+
+" Get the filter command applied.
+" Return: list of ag or grep filter command for each filter window, "" when filter command is not found.
+function! s:GetFiltWindowCmd()
+    let winNr = win_getid()
+    let l:pos = winsaveview()
+    let l:filtCmd = []
+
+    " Parent window exists
+    if !hi#windowFamily#GotoParent()
+        " I'm on a son windoww
+        " Go to first parent window.
+        while !hi#windowFamily#GotoParent() | endwhile
+    endif
+
+    "call hi#windowFamily#GotoFirstSon()
+    let n = 1
+    while hi#windowFamily#GotoFirstSon() == 0
+        if exists("w:HiFiltCmdExt")
+            let l:filtCmd += [ w:HiFiltCmdExt ]
+            call s:Log("GetFiltWindowCmd: ".l:n." ".w:HiFiltCmdExt)
+        else
+            let l:filtCmd += [ "" ]
+            call s:Log("GetFiltWindowCmd: ".l:n." empty")
+        endif
+        let n += 1
+    endwhile
+
+    call win_gotoid(l:winNr)
+    call winrestview(l:pos)
+
+    "echo "Sync filter command: ".l:filtCmd
+    call s:Log("GetFiltWindowCmd: end")
+    return l:filtCmd
+endfunction
+
+
+
+" Start/Stop tail updating for current file.
+" Reload file periodically.
+" Arg1: seconds, timer time to launch the refresh.
+"  If seconds empty, launch only once.
+"  If seconds == 0, update instantly without wait time.
+"  If seconds > 0, wait time before update again.
+" Return: 0 on success, 1 on error.
+" Command: Hiupt
+function! hi#tail#Toogle(seconds)
+    call s:Log("Toogle ")
+
+    if (v:version < 800)
+         call hi#log#Error("Vim version 8.0 needed for this functionality.")
+        return 1
+    endif
+
+    if (v:version < 800 || !has("timers"))
+        " +timers option needed for timer_start, timer_end functions.
+        call hi#log#Error("+timers functionality not found. Compile vim with +timers setting active.")
+        return 1
+    endif
+
+    if (v:version < 800 || !has("job"))
+        " +job option needed for job_start, job_stop, job_status functions.
+        call hi#log#Error("+job functionality not found. Compile vim with +job setting active.")
+        return 1
+    endif
+
+    if !exists("g:loaded_jobs")
+        call hi#log#Error("Plugin jobs.vim not loaded.")
+        return 1
+    endif
+
+    if !executable('rsync')
+        call hi#log#Error("rsync binary not found.")
+        return 1
+    endif
+
+    if !executable('diff')
+        call hi#log#Error("diff binary not found.")
+        return 1
+    endif
+
+
+    if a:seconds == "?"
+        if exists("s:HiTailFile") && s:HiTailFile != ""
+            echo "Hi plugin. Update tail on: ".s:HiTailFile." ON, executed:".s:HiTailNum
+        else
+            echo "Hi plugin. Update tail OFF"
+        endif
+        return
+    endif
+
+    if exists("s:HiTailFile")
+        echo "Hi plugin. STOP tail update (".s:HiTailNum.") ".s:HiTailFile
+        call timer_stopall()
+        let l:HiTailFile = s:HiTailFile
+        unlet s:HiTailFile
+        if a:seconds == "" | return | endif
+        if l:HiTailFile != expand("%") | return | endif
+    endif
+
+    call hi#windowFamily#GotoFirstParentWindow()
+    let s:HiTailFile = expand("%")
+    let s:HiTailNum = 1
+
+    " Remote file.
+    "if expand("%") =~ "^scp://"
+    " Get the filter cmd used on the filter window.
+    let s:HiTailFiltCmdList = s:GetFiltWindowCmd()
+    let s:HiTailSavedWinnr = win_getid()
+    let s:HiTailSavedPosition = winsaveview()
+    "endif
+
+    " Move cursor position to file en parent and every filter windows.
+    silent normal G
+    if hi#windowFamily#GotoFirstSon() == 0
+        silent normal G
+    endif
+    call hi#windowFamily#GotoFirstParentWindow()
+
+    redraw
+    if a:seconds == ""
+        call s:Log("Toogle launch once")
+        echo "Hi plugin. Launch tail update once"
+        let s:HiTailTimerTimeMsec = ""
+        call hi#tail#Reload("")
+        unlet s:HiTailFile
+    else
+        let l:seconds = str2nr(a:seconds)
+        if l:seconds == 0
+            echo "Hi plugin. LAUNCH tail update continuouly"
+        else
+            echo "Hi plugin. LAUNCH tail update every ".l:seconds."sec"
+        endif
+
+        call s:Log("Toogle launch ".l:seconds)
+        let s:HiTailTimerTimeMsec = l:seconds * 1000
+        call hi#tail#Reload("")
+    endif
+    call s:Log("Toogle end")
+    return 0
+endfunction
+
+
+"- initializations ------------------------------------------------------------
+
+let  s:plugin_path = expand('<sfile>:p:h')
+"call hi#hi#Initialize()
+
