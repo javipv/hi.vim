@@ -16,10 +16,10 @@ Recomended version: Vim 8.0+
 Binaries recommended: ag (silver searcher) or grep. Needed for the filter window.
 
 To install with vimball:
-download hi_2.0.8.vmb
-vim hi_2.0.8.vmb
-:so %
-:q
+- download hi_2.0.8.vmb
+- vim hi_2.0.8.vmb
+- :so %
+- :q
 
 
 ## USAGE:
