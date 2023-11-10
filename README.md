@@ -8,6 +8,19 @@ This is a complex tool for log analysis.
 
 This script allows you to highlight the words, sentences or regular expressions you need, on up to 82 colors, and 410 color configurations, when including foreground colors, background colors, bold and underline configurations.
 
+## INSTALL:
+
+Minimum version: Vim 7.0+
+Recomended version: Vim 8.0+
+
+Binaries recommended: ag (silver searcher) or grep. Needed for the filter window.
+
+To install with vimball:
+download hi_2.0.8.vmb
+vim hi_2.0.8.vmb
+:so %
+:q
+
 
 ## USAGE:
 
