@@ -3,10 +3,10 @@
 "   Allows to save, reload and modify the highlighting configuration.
 "   Allows to filter by color the lines and show then on a new split/tab.
 "
-" Copyright:   (C) 2017-2020 Javier Puigdevall Garcia
+" Copyright:   (C) 2017-2020 Javier Puigdevall
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
-" Maintainer:  Javier Garcia Puigdevall <javierpuigdevall@gmail.com>
+" Maintainer:  Javier Puigdevall <javierpuigdevall@gmail.com>
 " Contributors:
 "
 
@@ -111,13 +111,183 @@ function! hi#configTypes#ShowConfigType(type)
 endfunction
 
 
-
-" Load configuration type.
-" Arg1: [OPTIONAL] type, config type's names space separated.
+" Load configuration type. When no argument provided open menu to choose the configuration.
+" Arg1: [OPTIONAL] type, space separated config names.
 " Arg2: [OPTIONAL] applyConfig, if 1 apply the selected config list to the current buffer.
 " Return: config list.
 " Commands: Hit
-"function! hi#configTypes#LoadConfigType(type, applyConfig, saveName, commentConfig)
+function! hi#configTypes#LoadConfigTypeMenu(type, applyConfig, saveName)
+    silent call hi#fileConfig#Reload()
+
+    if !exists("w:HiTypesList") || len(w:HiTypesList) <= 0
+        call hi#log#Warn("[hi.vim] No predifined configuration found!")
+        return
+    endif
+
+    let s:type = a:type
+    let s:applyConfig = a:applyConfig
+    let s:saveName = a:saveName
+
+    if a:type == ""
+        " Open menu to select the configuration type.
+        let l:header = [ "[hi.vim] Select the highlight configuration:" ]
+        let l:callback = "hi#configTypes#LoadConfigTypeMenuCallback"
+        let l:typesList = [ "Clear-all" ]
+        let l:typesList += w:HiTypesList
+
+        call hi#menu#FirstNumber(0)
+        call hi#menu#ShowLineNumbers("yes")
+        call hi#menu#OpenMenu(l:header, l:typesList, l:callback, "")
+    else
+        return hi#configTypes#LoadConfigTypeMenuCallback(a:type)
+    endif
+endfunction
+
+
+" Load configuration type menu callback function.
+function! hi#configTypes#LoadConfigTypeMenuCallback(types)
+    call hi#fileConfig#Reload()
+    let loadTypeFlag = 0
+
+    for type in split(a:types,' ')
+        " Check if first letter is numeric value
+        if "0123456789" !~ l:type[0:0]
+            if l:type ==? "clear-all"
+                echo "Clear highlighting"
+                call hi#config#SyntaxClear()
+                call hi#config#ListClear()
+                continue
+            endif
+
+            " type is config name
+            let configName = l:type
+        else
+            if l:type == 0
+                echo "Clear highlighting"
+                call hi#config#SyntaxClear()
+                call hi#config#ListClear()
+                continue
+            endif
+
+            " type is number, use function number saved on that position
+            let last = len(g:HiPredefinedTypesList) + len(w:HiTypesList)
+            if l:type  < 0 || l:type > l:last
+                call hi#log#Error("Type ".a:types." above maximum: ".l:last)
+                return
+            endif
+
+            let l:type -= 1
+
+            if len("w:HiTypesList") <= 0 && len("g:HiPredefinedTypesList") <= 0
+                call hi#log#Warn("Highlight predifined configuration not found.")
+                return
+            endif
+
+            if len("w:HiTypesList") <= 0
+                let configName = g:HiPredefinedTypesList[l:type]
+            else
+                if a:types <= len(w:HiTypesList)
+                    let configName = w:HiTypesList[l:type]
+                else
+                    let configName = g:HiPredefinedTypesList[l:type]
+                endif
+            endif
+        endif
+
+        if !exists("w:".l:configName)
+            "call hi#log#Verbose(1, expand('<sfile>'), "Config not found: w:".l:configName)
+            call hi#log#Error("Config not found: ".l:configName)
+            continue
+        endif
+
+        if l:configName == ""
+            call hi#log#Verbose(1, expand('<sfile>'), "Empty config name")
+            continue
+        endif
+
+        if l:configName != ""
+            exec("let l:colorPatternsList = w:".l:configName)
+
+            if s:saveName == 1
+                let w:AllConfigTypeNames = l:configName
+            endif
+
+            if a:types == ""
+                " Ask user confirmation only when config not send on the command line
+                redraw
+                "echo "Config type: ".a:types." ".l:configName
+                "echo ""
+                call hi#config#ShowHighlightCfg(l:colorPatternsList)
+
+                if confirm("","Apply config, &yes\n&no",1) == 2
+                    continue
+                endif
+            endif
+
+            if !exists("w:ColoredPatternsList")
+                let w:ColoredPatternsList = []
+                call hi#config#SyntaxClear()
+                call hi#config#ListClear()
+            endif
+
+            " Add to current highlight config
+            exec("let l:configList = w:".l:configName)
+            let configFlag = 0
+
+            if s:applyConfig != ""
+                for config in l:configList
+                    let command = l:config[0]
+
+                    if l:command[0] == "#"
+                        " Do not show comments
+                        call hi#config#AddComment(l:config[0])
+                    elseif l:command =~ "Mark"
+                        if hi#config#PatternHighlight(config[1],config[2],config[3]) == 0
+                            let l:configFlag = 1
+                        endif
+                    else
+                        if hi#config#ApplyCommand(l:config[0],l:config[1]) == 0
+                            let l:configFlag = 1
+                        endif
+                    endif
+                endfor
+
+                if l:configFlag == 0
+                    " Every config highlihgt failed.
+                    return
+                endif
+                let loadTypeFlag = 1
+
+                let w:LastConfigTypeName = l:configName
+                let w:ConfigTypeName = l:configName
+            endif
+        endif
+    endfor
+
+    if loadTypeFlag == 1
+        call hi#config#SyntaxReload()
+        call hi#fileConfig#AutoSaveColorHiglighting()
+        call hi#config#Reload()
+    endif
+
+    call hi#utils#ConcealEscSeq()
+
+    " Update the hihglight config editor window
+    call hi#configEditor#Reload()
+
+    if !exists("l:configList")
+        let l:configList = []
+    endif
+
+    return l:configList
+endfunction
+
+
+" Load configuration type. Old one without menu window.
+" Arg1: [OPTIONAL] type, config type's names space separated.
+" Arg2: [OPTIONAL] applyConfig, if 1 apply the selected config list to the current buffer.
+" Return: config list.
+" Commands: Hitn
 function! hi#configTypes#LoadConfigType(type, applyConfig, saveName)
     if a:type == ""
         " Open menu on screen to choose the config type

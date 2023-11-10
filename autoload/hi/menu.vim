@@ -68,7 +68,9 @@ function! hi#menu#OpenMenu(headerList, optionsList, callbackFunction, selectText
     endif
 
     let l:pos = s:hiHeaderLines + 1
-    let i = 0
+    "let i = 0
+    "let i = 1
+    let i = s:hiMenuDefaultFirstNumber
 
     "----------------------------------
     " Write down each menu line:
@@ -100,8 +102,6 @@ function! hi#menu#OpenMenu(headerList, optionsList, callbackFunction, selectText
                 let g:HiCheckPatternAvailable = 1
             endif
         else
-            let i += 1
-
             if s:hiMenuShowLineNumbers == "yes"
                 " Check if curren option is the default one.
                 if l:line == a:selectText
@@ -113,6 +113,7 @@ function! hi#menu#OpenMenu(headerList, optionsList, callbackFunction, selectText
                 endif
 
                 let s:hiMenuShowLineNumbers = "yes"
+                let i += 1
             endif
         endif
 
@@ -268,6 +269,11 @@ function! hi#menu#SelectWindowPosition(defaultWindowPos)
 endfunction
 
 
+function! hi#menu#FirstNumber(number)
+    let s:hiMenuDefaultFirstNumber = a:number
+endfunction
+
+
 
 " Select option.
 function! hi#menu#Select()
@@ -355,4 +361,5 @@ let s:hiMenuHighlightDefaultLine = "no" " yes/no
 let s:hiMenuColorList = []
 let s:hiMenuShowLineNumbers = "yes"
 let s:hiMenuDefaultWindowPos = ""
+let s:hiMenuDefaultFirstNumber = 1
 

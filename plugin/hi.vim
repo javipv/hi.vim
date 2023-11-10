@@ -343,9 +343,8 @@ command! -nargs=?  Hi                call hi#helpMenu#LaunchCommandMenu("<args>"
 " Show all highlighting config.
 command! -nargs=? -complete=customlist,hi#configTypes#Wildmenu Hitsh   call hi#configTypes#ShowConfigType(<q-args>)
 " Load a highlight config type.
-command! -nargs=? -complete=customlist,hi#configTypes#Wildmenu Hit     call hi#configTypes#LoadConfigType(<q-args>,1,1)
-command! -nargs=? -complete=customlist,hi#configTypes#Wildmenu Hit1    call hi#configTypes1#LoadConfigType(<q-args>,1,1)
-command! -nargs=? -complete=customlist,hi#configTypes#Wildmenu Hit2    call hi#configTypes2#LoadConfigType(<q-args>,1,1)
+command! -nargs=? -complete=customlist,hi#configTypes#Wildmenu Hit     call hi#configTypes#LoadConfigTypeMenu(<q-args>,1,1) " New function with screen menu.
+command! -nargs=? -complete=customlist,hi#configTypes#Wildmenu Hitn    call hi#configTypes#LoadConfigType(<q-args>,1,1) " Old function, no menu available.
 " Load last used highlight config.
 command! -nargs=0 Hitl               call hi#configTypes#LastType()
 
