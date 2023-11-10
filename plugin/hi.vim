@@ -17,7 +17,9 @@
 "
 " Version:      2.0.8
 " Changes:
+"   - New: add help menu, search/launch commands with :Hi [PATTERN].
 " 2.0.8 	Tue, 04 Mar 23.     JPuigdevall
+"   * Added to GitHub. 
 "   - Fix: enhance the config tags parsing when using functions: IsTitle, IsCommand, IsColor.
 "     Title line format should match format: ^\[[a-aA-Z].*\]$
 "   - New: on help (:Hih) command, add color highlighting.
@@ -255,6 +257,11 @@ let g:HiFileConfigCheckLinesMax     = get(g:, 'HiFileConfigCheckLinesMax', 150)
 " PopUp menu options:
 let g:HiUsePopUps                   = get(g:, 'HiUsePopUps', 1)
 
+" Menu Window:
+let g:hi_menu_headerColor          = get(g:, 'hi_menu_headerColor', "b")
+let g:hi_menu_defaultLineColor     = get(g:, 'hi_menu_defaultLineColor', "y8")
+let g:hi_menu_highlightDefaultLine = get(g:, 'hi_menu_highlightDefaultLine', "")
+
 
 "- commands -------------------------------------------------------------------
 
@@ -328,7 +335,8 @@ command! -nargs=0 Hih                call hi#help#CommandHelp()
 " Show command help
 command! -nargs=0 Hihc               call hi#help#ConfigHelp()
 " Show commands menu:
-command! -nargs=* Hi                 call hi#help#CommandMenu(<f-args>)
+"command! -nargs=* Hi                 call hi#help#CommandMenu(<f-args>)
+command! -nargs=?  Hi                call hi#helpMenu#LaunchCommandMenu("<args>")
 
 
 " SAVED CONFIG TYPES:
