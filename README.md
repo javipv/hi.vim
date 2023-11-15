@@ -1,6 +1,6 @@
 # hi.vim
 
-First at https://www.vim.org/scripts/script.php?script_id=5887
+First at [vim.org/hi.vim](https://www.vim.org/scripts/script.php?script_id=5887)
 
 Vim plugin for text highlight and filter.
 
