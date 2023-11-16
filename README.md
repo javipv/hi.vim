@@ -41,8 +41,9 @@ The N color ID is a special ID with no color highlight, its use is to mark patte
 ### 2) TEXT EXAMPLE:
 
 This is a little complex to explain so, let's write a text example to try the commands.
-Write the following lines to a new buffer:
 
+Write the following lines to a new buffer:
+```
 Example pattern1
 Some more text with no highlights
 Example pattern2
@@ -64,6 +65,7 @@ Some more text with no highlights
 Example pattern_12
 Example pattern_13
 Example pattern_14
+```
 
 
 ### 3) HIGHLIGHT COMMANDS:
@@ -78,53 +80,105 @@ Threre are some modifiers that can be appended to color ID in order to obtain a 
 - Append 0 to to color ID to highlight on top of a previous highlight.
 
 Examples:
-Examples:
-- Highlight word pattern1 in red color :Hic pattern1 r
-- Highlight word pattern2 in green color :Hic pattern2 g
-- Highlight word pattern3, case sensitive, in green2 color :Hic \CPattern3 g2
-- Highlight word pattern4, no case sensitive, in green5 color :Hic \cpattern4 g5
-- Highlight word pattern5 in yellow and bold :Hic pattern5 y!
-- Highlight word pattern6 in magenta underlined :Hic pattern6 m_
-- Highlight word pattern7 in violet background :Hic pattern7 v@
-- Highlight word pattern8 in violet background and bold text :Hic pattern8 v@!
-- Highlight the whole line containing word pattern9 background in red color :Hic pattern9 r@*
-- Highlight the regular expression my.*pattern_10 in green4 color :Hic my.*pattern_10 g4
-- Highlight in 'none' color :Hic pattern_11 n
-- Highlight word pattern_12 in blue3 and bold text :Hic pattern_12 b3!
-- Highlight word pattern_13 in cyan and underline text :Hic pattern_13 c_
-- Highlight the whole line containing pattern_14 in cyan and underline text :Hic pattern_14 c_*
-- Highlight the character 8 on top of the already highlighted pattern6 in cyan background :Hic 6 c0
-- Highlight the character 8 on top of the already highlighted pattern8 in cyan background :Hic 8 c@0
+```vimscript
+" Highlight word pattern1 in red color
+:Hic pattern1 r
+
+" Highlight word pattern2 in green color
+:Hic pattern2 g
+
+" Highlight word pattern3, case sensitive, in green2 color
+:Hic \CPattern3 g2
+
+" Highlight word pattern4, no case sensitive, in green5 color
+:Hic \cpattern4 g5
+
+" Highlight word pattern5 in yellow and bold
+:Hic pattern5 y!
+
+" Highlight word pattern6 in magenta underlined
+:Hic pattern6 m_
+
+" Highlight word pattern7 in violet background
+:Hic pattern7 v@
+
+" Highlight word pattern8 in violet background and bold text
+:Hic pattern8 v@!
+
+" Highlight the whole line containing word pattern9 background in red color
+:Hic pattern9 r@*
+
+" Highlight the regular expression my.*pattern_10 in green4 color
+:Hic my.*pattern_10 g4
+
+" Highlight in 'none' color
+:Hic pattern_11 n
+
+" Highlight word pattern_12 in blue3 and bold text
+:Hic pattern_12 b3!
+
+" Highlight word pattern_13 in cyan and underline text
+:Hic pattern_13 c_
+
+" Highlight the whole line containing pattern_14 in cyan and underline text
+:Hic pattern_14 c_*
+
+" Highlight the character 8 on top of the already highlighted pattern6 in cyan background
+:Hic 6 c0
+
+" Highlight the character 8 on top of the already highlighted pattern8 in cyan background
+:Hic 8 c@0
+```
 
 Omit the color ID to choose the color from a menu showing the basic colors :Hic patternX
 
 Use ':Hish' to display the current color highlighting configuration.
 
-Use <leader>hw to highlight a word.
-Use <leader>hW to highlight the whole word.
+Use \<leader>hw to highlight a word.
+
+Use \<leader>hW to highlight the whole word.
 
 
 ### 4) SEARCH COMMAND:
 
 Use command :Hics colorId, to search all patterns highlighted with the selected color IDs.
-Examples:
-- Search all red highlighted patterns :Hics r
-- Search all red and yellow highlighted patterns :Hics r y
-- Search all red foreground and red background highlighted patterns :Hics r@ r
 
+Examples:
+```vimscript
+" Search all red highlighted patterns:
+:Hics r
+
+" Search all red and yellow highlighted patterns:
+:Hics r y
+
+" Search all red foreground and red background highlighted patterns:
+:Hics r@ r
+
+" Search all highlights:
+:Hics
+```
 
 ### 5) CONFIGURATION SAVE COMMANDS:
 
 Configurations can be saved on file to use them later again.
-There are three basic configuration files:
-currenFile_vim_hi.cfg:  configurations only visible when vim is editing this file (currentFile).
-currenDir/.vim_hi.cfg: configurations only visible when vim is open on this directory.
-~/.vim_hi.cfg:  general configurations, always available.
-Examples:
-- Save current highlight configuration with name :Hisv MyConfig (You will be asked the file where the configuration will be saved)
-- Add a new configuration file :Hil MyConfigFile
-- Edit all configuration files availble :Hicfg
 
+There are three basic configuration files:
+- currenFile_vim_hi.cfg:  configurations only visible when vim is editing this file (currentFile).
+- currenDir/.vim_hi.cfg: configurations only visible when vim is open on this directory.
+- ~/.vim_hi.cfg:  general configurations, always available.
+
+Examples:
+```vimscript
+" Save current highlight configuration with name:
+" (You will be asked the file where the configuration will be saved)
+:Hisv MyConfig
+
+" Add a new configuration file:
+:Hil MyConfigFile
+
+" Edit all configuration files availble:
+:Hicfg
+```
 
 ### 6) CONFIGURATION FORMAT:
 
@@ -162,6 +216,7 @@ Goto = last
 ### 7) CONFIGURATION LOAD COMMANDS:
 
 Configurations can be loaded with command :Hit (highlight types).
+
 Examples:
 - Show all available configurations :Hit
 - Load the first configuration :Hit 1
@@ -179,7 +234,9 @@ Select type:
 ### 8) FILTER WINDOW:
 
 Filter tool, allows to open a separated split containing only the selected highlights with command Hif (highlight filter).
+
 Use command Hif color/pattern.
+
 Examples:
 - Open a filter window displaying all lines with highlights :Hif
 - Close previous filter and open a filter window displaying all lines with red highlights :close | Hif r
@@ -207,6 +264,7 @@ Once the filter window's opened, use Alt+ENTER key to synchronize the window pos
 ### 9) EDITOR window:
 
 The highlight configuration editor window allows a more convenient edit of the highlights and filters to apply. Open it with Hie (highlight edit).
+
 Use :Hie to open the editor window (<leader>he too) on vertical split on the right side.
 
 If you followed the previous example you'll see:
@@ -268,7 +326,8 @@ Filt = all
 # Search commands:
 Find g4
 ```
-Attention: the firs blank line will end the configuration parser on the editor window.
+Attention: the firs blank line will end the configuration parser on the editor window..
+
 A blank line is mandatory to at the configuration end to stop config parser.
 
 When changing to any other split the editor window will stay minimized, if you change the focus to the editor split again it will expand to its original size.
@@ -320,8 +379,6 @@ Mark = r | CT | Error:
 Mark = r | CT | Failure:
 vim_hi:cfg=ErrorHighlightConfig::cfgFile=%
 ```
-
-
 
 ### 11) HIGHLIGHT GROUPS (NEW Version 2.0.2)
 
