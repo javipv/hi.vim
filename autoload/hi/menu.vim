@@ -26,12 +26,19 @@ function! hi#menu#OpenMenu(headerList, optionsList, callbackFunction, selectText
     let s:hiHeaderLines = len(a:headerList)
     let s:hiMenuReturnWinNr = win_getid()
 
-    if s:hiMenuDefaultWindowPos != ""
-        call hi#utils#WindowSplitMenu(s:hiMenuDefaultWindowPos)
+    if s:hiMenuforceWindowPos != ""
+        let w:winSize = winheight(0)
+        let w:split = s:hiMenuforceWindowPos
+        echom "hi#menu#OpenMenu w:split:".w:split
         call hi#utils#WindowSplit()
     else
-        let w:winSize = winheight(0)
-        silent new
+        if s:hiMenuDefaultWindowPos != ""
+            call hi#utils#WindowSplitMenu(s:hiMenuDefaultWindowPos)
+            call hi#utils#WindowSplit()
+        else
+            let w:winSize = winheight(0)
+            silent new
+        endif
     endif
 
     "----------------------------------
@@ -69,8 +76,8 @@ function! hi#menu#OpenMenu(headerList, optionsList, callbackFunction, selectText
 
     let l:pos = s:hiHeaderLines + 1
     "let i = 0
-    "let i = 1
-    let i = s:hiMenuDefaultFirstNumber
+    let i = 1
+    let n = s:hiMenuDefaultFirstNumber
 
     "----------------------------------
     " Write down each menu line:
@@ -106,14 +113,15 @@ function! hi#menu#OpenMenu(headerList, optionsList, callbackFunction, selectText
                 " Check if curren option is the default one.
                 if l:line == a:selectText
                     let l:pos = l:i + s:hiHeaderLines
-                    let l:line = "> ".l:i.") ".l:line
+                    let l:line = "> ".l:n.") ".l:line
                     let l:defaultLineText = l:line
                 else
-                    let l:line = "  ".l:i.") ".l:line
+                    let l:line = "  ".l:n.") ".l:line
                 endif
 
                 let s:hiMenuShowLineNumbers = "yes"
                 let i += 1
+                let n += 1
             endif
         endif
 
@@ -134,22 +142,24 @@ function! hi#menu#OpenMenu(headerList, optionsList, callbackFunction, selectText
     silent! exec '0file | file _hi_menu_'
 
     " Move window to bottom
-    if s:hiMenuDefaultWindowPos == ""
+    if s:hiMenuDefaultWindowPos != "" || s:hiMenuforceWindowPos != ""
         wincmd J
     endif
 
     "----------------------------------
     " Resize window depending on content.
     "----------------------------------
-    if s:hiMenuDefaultWindowPos != ""
+    if s:hiMenuDefaultWindowPos != "" || s:hiMenuforceWindowPos != ""
         call hi#utils#WindowSplitEnd()
     else
-        if exists("g:hi_menuMaxLines")
-            if l:i < g:hi_menuMaxLines
+        if exists("g:hi_menu_maxLines")
+            if l:i < g:hi_menu_maxLines
                 let l:n = l:i + 2
                 silent exe "resize ".l:n
+                "echom "silent exe resize ".l:n
             else
-                silent exe "resize ".g:hi_menuMaxLines
+                silent exe "resize ".g:hi_menu_maxLines
+                "echom "resize ".g:hi_menu_maxLines
             endif
         endif
     endif
@@ -234,45 +244,71 @@ function! hi#menu#OpenMenu(headerList, optionsList, callbackFunction, selectText
 endfunction
 
 
+" Choose the color for the first lines before menu fields (header)
+" Arg1: color. Plugin hi.vim colors: r, g, b, m, r@...
 function! hi#menu#SetHeaderColor(color)
     let s:hiMenuHeaderColor = a:color
 endfunction
 
 
+" Choose the color for the selected menu.
+" Arg1: color. Plugin hi.vim colors: r, g, b, m, r@...
 function! hi#menu#SetDefaultLineColor(color)
     let s:hiMenuDefaultLineColor = a:color
 endfunction
 
-
+" Choose whether to highlight the current line selected.
+" Arg1: state. yes/no.
 function! hi#menu#SetHighlightDefaultLine(state)
     let s:hiMenuHighlightDefaultLine = a:state
 endfunction
 
-
+" Colorize a pattern on the menu window comments.
+" Arg1: word. Pattern to be highlighted.
+" Arg2: color. Plugin hi.vim colors: r, g, b, m, r@...
 function! hi#menu#AddCommentLineColor(word, color)
     let s:hiMenuCommentsList += [[ a:word, a:color ]]
 endfunction
 
 
+" Colorize a pattern on the menu window selectable fields.
+" Arg1: word. Pattern to be highlighted.
+" Arg2: color. Plugin hi.vim colors: r, g, b, m, r@...
 function! hi#menu#AddPatternColor(pattern, color)
     let s:hiMenuColorList += [ a:pattern." ".a:color ]
 endfunction
 
 
+" Choose whether to display numbers before each menu field.
+" Arg1: status, yes/no.
 function! hi#menu#ShowLineNumbers(status)
     let s:hiMenuShowLineNumbers = a:status
 endfunction
 
 
+" Select window default position when asking user to split new, vertical...
+" Arg1: defaultWindowPos, 1 for new split, 2, for vertical split, 3 for tab, " 4. Also:
+" "horizontal" for new split, "vertical" for vertical split, "tab" for new tab and  "this"
+" for current window.
 function! hi#menu#SelectWindowPosition(defaultWindowPos)
     let s:hiMenuDefaultWindowPos = a:defaultWindowPos
 endfunction
 
 
+" Force window position, do not ask user wheter to open on new split, vertical split, tab...
+" Arg1: defaultWindowPos, 1 for new split, 2, for vertical split, 3 for tab, " 4. Also:
+" "horizontal" for new split, "vertical" for vertical split, "tab" for new tab and  "this"
+" for current window.
+function! hi#menu#ForceWindowPosition(forceWindowPos)
+    let s:hiMenuforceWindowPos = a:forceWindowPos
+endfunction
+
+
+" When adding numbers on each menu field, select the first number to be used.
+" Arg1: number, usually 0 or 1.
 function! hi#menu#FirstNumber(number)
     let s:hiMenuDefaultFirstNumber = a:number
 endfunction
-
 
 
 " Select option.
@@ -336,6 +372,8 @@ function! hi#menu#UnmapKeysAndQuit()
 
     let s:hiMenuCommentsList = []
     let s:hiMenuDefaultWindowPos = ""
+    let s:hiMenuDefaultFirstNumber = 1
+    let s:hiMenuforceWindowPos = ""
     redraw
 
     " Return to the original window.
@@ -362,4 +400,5 @@ let s:hiMenuColorList = []
 let s:hiMenuShowLineNumbers = "yes"
 let s:hiMenuDefaultWindowPos = ""
 let s:hiMenuDefaultFirstNumber = 1
+let s:hiMenuforceWindowPos = ""
 

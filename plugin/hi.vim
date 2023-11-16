@@ -261,6 +261,7 @@ let g:HiUsePopUps                   = get(g:, 'HiUsePopUps', 1)
 let g:hi_menu_headerColor          = get(g:, 'hi_menu_headerColor', "b")
 let g:hi_menu_defaultLineColor     = get(g:, 'hi_menu_defaultLineColor', "y8")
 let g:hi_menu_highlightDefaultLine = get(g:, 'hi_menu_highlightDefaultLine', "")
+let g:hi_menu_maxLines             = get(g:, 'hi_menu_maxLines', "10")
 
 
 "- commands -------------------------------------------------------------------
@@ -299,7 +300,6 @@ command! -nargs=? Hicrm              call hi#config#RmColor(<q-args>)
 command! -nargs=* -complete=file -complete=customlist,hi#fileConfig#Wildmenu Hisv call hi#fileConfig#SaveCurrentHighlightCfg(<f-args>)
 " Show current highlight config
 command! -nargs=0 Hish               call hi#config#ShowCurrentHighlightCfg()
-command! -nargs=0 Hish2              call hi#config2#ShowCurrentHighlightCfg()
 " Open menu remove a highlight pattern from current config.
 command! -nargs=0 Hirm               call hi#config#RmPattern()
 " Undo last color highlighting applied.
