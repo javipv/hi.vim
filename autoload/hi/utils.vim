@@ -166,15 +166,17 @@ function! hi#utils#WindowSplit()
     let l:split = w:split
     let l:winSize = w:winSize
 
-    if w:split == 1
-        silent exec("sp! | enew")
-    elseif w:split == 2
-        silent exec("vnew")
-    elseif w:split == 3
-        silent exec("tabnew")
-    elseif w:split == 4
-        silent exec("enew")
+    if w:split == 1 || w:split == "horizontal"
+        let l:cmd = "sp! | enew"
+    elseif w:split == 2 || w:split == "vertical"
+        let l:cmd = "vnew"
+    elseif w:split == 3 || w:split == "tab"
+        let l:cmd = "tabnew"
+    elseif w:split == 4 || w:split == "this"
+        let l:cmd = "enew"
     endif
+
+    silent exec(l:cmd)
 
     let w:split = l:split
     let w:winSize = l:winSize - 2
