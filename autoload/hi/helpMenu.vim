@@ -30,7 +30,6 @@ function! hi#helpMenu#LaunchCommandMenu(...)
     let l:cmdList += [ "Hit  [TYPE_NAME]      : types, apply selected highlight" ]
     let l:cmdList += [ "Hitf TYPE_NAME FILE   : types, apply selected highlight from file" ]
     let l:cmdList += [ "Hil  [FILE_NAME]      : types, load a configuration file" ]
-    let l:cmdList += [ "Hil  [FILE_NAME]      : types, load a configuration file" ]
     let l:cmdList += [ "Hia                   : types, apply auto-config line if found on file header or tail" ]
 
     let l:cmdList += [ "!== Save configuration type == " ]
