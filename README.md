@@ -362,11 +362,16 @@ Use ":Hi PATTERN1 PATTERN2", with arguments, to show the commands matching the s
 Then you can select on the menu window the command you want to launch..
 
 For instance:
+```vimscript
+" To show all commands and descriptions matching "color".
+:Hi color
 
-":Hi color" to show all commands and descriptions matching "color".
+" To show all commands and descriptions matching "filter".
+:Hi filter
 
-":Hi filter" to show all commands and descriptions matching "filter".
+" To show all commands and descriptions matching "filter" and "synch".
+:Hi filter sync
 
-":Hi filter sync" to show all commands and descriptions matching "filter" and "synch".
-
-":Hi" show all commands available.
+" Show all commands available.
+":Hi
+```
