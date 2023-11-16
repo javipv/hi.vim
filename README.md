@@ -353,7 +353,20 @@ Example 5: filter all red backgraound highlighted patterns.
 ```
   
 
-### 12) HELP menu:
+### 13) command menu:
 
-There is a small help you can display using command :Hih.
-This will show you the previous (basic) commands and some more. 
+Use ":Hi" without arguments, to open a menu window displaying all commands.
+
+Use ":Hi PATTERN1 PATTERN2", with arguments, to show the commands matching the selected patterns.
+
+Then you can select on the menu window the command you want to launch..
+
+For instance:
+
+":Hi color" to show all commands and descriptions matching "color".
+
+":Hi filter" to show all commands and descriptions matching "filter".
+
+":Hi filter sync" to show all commands and descriptions matching "filter" and "synch".
+
+":Hi" show all commands available.
