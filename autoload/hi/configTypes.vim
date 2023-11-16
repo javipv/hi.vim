@@ -135,9 +135,15 @@ function! hi#configTypes#LoadConfigTypeMenu(type, applyConfig, saveName)
         let l:typesList = [ "Clear-all" ]
         let l:typesList += w:HiTypesList
 
+        let l:defaultField = ""
+        if exists("w:ConfigTypeName")
+            let l:defaultField = w:ConfigTypeName
+        endif
+
+        call hi#menu#ForceWindowPosition("")
         call hi#menu#FirstNumber(0)
         call hi#menu#ShowLineNumbers("yes")
-        call hi#menu#OpenMenu(l:header, l:typesList, l:callback, "")
+        call hi#menu#OpenMenu(l:header, l:typesList, l:callback, l:defaultField)
     else
         return hi#configTypes#LoadConfigTypeMenuCallback(a:type)
     endif
