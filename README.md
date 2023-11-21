@@ -8,6 +8,12 @@ This is a complex tool for log analysis.
 
 This script allows you to highlight the words, sentences or regular expressions you need, on up to 82 colors, and 410 color configurations, when including foreground colors, background colors, bold and underline configurations.
 
+
+Example with text highlighted on upper left with editor and filter window's opened:
+
+![Example1](hi_vim_example1.png?raw=true ":example1")
+
+
 ## INSTALL:
 
 Minimum version: Vim 7.0+
@@ -158,11 +164,6 @@ Examples:
 " Highlight the character 8 on top of the already highlighted pattern8 in cyan background
 :Hic 8 c@0
 ```
-
-When doing :Hif and :Hie, you should have this:
-
-![Example1](hi_vim_example1.png?raw=true ":example1")
-
 
 When using command ":Hicol PATTERN", omit the color ID to choose the color from a menu showing the basic colors.
 
