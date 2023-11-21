@@ -28,14 +28,43 @@ To install with vimball:
 
 Commands Hicol (highlight colors) and Hiid (highlight IDs) display the available colors.
 Examples:
-- Show basic color IDs: :Hiid
-- Show all color IDs: :Hiid all
-- Show red color IDs: :Hicol r
-- Show red color IDs including bold, underline and background colors: :Hicol r all
-- Show red and orange color IDs: :Hiid r o
-- Show red and orange color IDs including bold, underline and background colors: :Hicol r o all
+```vimscript
+" Show basic color IDs: :Hiid
+```
 
-The N color ID is a special ID with no color highlight, its use is to mark patterns to be included later on the filter window without highlighting them.
+```vimscript
+" Show all color IDs:
+:Hiid all
+```
+
+":Hid all" will show all color ID available:
+
+![Hiid_all](Hiid_all.png?raw=true ":Hiid all")
+
+```vimscript
+" Show all color IDs:
+:Hicol all
+```
+
+":Hicol all" will show all colors available:
+
+![Hiid_all](Hicol_all.png?raw=true ":Hicol all")
+
+```vimscript
+" Show red color IDs:
+:Hicol r
+
+" Show red color IDs including bold, underline and background colors:
+:Hicol r all
+
+" Show red and orange color IDs:
+:Hiid r o
+
+" Show red and orange color IDs including bold, underline and background colors:
+:Hicol r o all
+```
+
+The n color ID is a special ID with no color highlight, its use is to mark patterns to be included later on the filter window without highlighting them.
 
 
 ### 2) TEXT EXAMPLE:
@@ -130,7 +159,12 @@ Examples:
 :Hic 8 c@0
 ```
 
-Omit the color ID to choose the color from a menu showing the basic colors :Hic patternX
+When doing :Hif and :Hie, you should have this:
+
+![Example1](hi_vim_example1.png?raw=true ":example1")
+
+
+When using command ":Hicol PATTERN", omit the color ID to choose the color from a menu showing the basic colors.
 
 Use ':Hish' to display the current color highlighting configuration.
 
