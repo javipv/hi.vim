@@ -123,7 +123,7 @@ Examples:
 :Hic pattern2 g
 
 " Highlight word pattern3, case sensitive, in green2 color
-:Hic \CPattern3 g2
+:Hic \CPATTERN3 g2
 
 " Highlight word pattern4, no case sensitive, in green5 color
 :Hic \cpattern4 g5
