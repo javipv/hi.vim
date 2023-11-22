@@ -21,7 +21,7 @@ Recomended version: Vim 8.0+
 
 Binaries recommended: ag (silver searcher) or grep. Needed for the filter window.
 
-To install with vimball:
+Install with vimball:
 - download hi_2.0.8.vmb
 - vim hi_2.0.8.vmb
 - :so %
@@ -35,7 +35,8 @@ To install with vimball:
 Commands Hicol (highlight colors) and Hiid (highlight IDs) display the available colors.
 Examples:
 ```vimscript
-" Show basic color IDs: :Hiid
+" Show basic color IDs:
+:Hiid
 ```
 
 ```vimscript
@@ -260,10 +261,14 @@ Examples:
 
 When launching Hit command you should see a menu like this:
 ```
-  0)  Clear all
+[Hi.vim] Select the highlight configuration:
+  0)  Clear-all
   1)  MyConfig
-Select type:
 ```
+
+Here an example with serveral more configurations:
+
+![HitExample](Hit.png?raw=true ":Hit example")
 
 
 ### 8) FILTER WINDOW:
