@@ -30,6 +30,14 @@ Install with vimball:
 
 ## USAGE:
 
+
+### 0) HELP:
+
+Use command ":Hih" to show the abridged command help.
+
+![HihExample](Hih.png?raw=true ":Hih command")
+
+
 ### 1) HIGHLIGHT COLORS:
 
 Commands Hicol (highlight colors) and Hiid (highlight IDs) display the available colors.
@@ -472,3 +480,7 @@ For instance:
 " Show all commands available.
 ":Hi
 ```
+
+Here you can see the ":Hi" command example:
+
+![HiExample](Hi.png?raw=true ":Hi command example")
