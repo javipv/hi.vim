@@ -163,7 +163,6 @@ function! hi#utils#WindowSplit()
         return
     endif
 
-    let l:split = w:split
     let l:winSize = w:winSize
 
     if w:split == 1 || w:split == "horizontal"
@@ -178,14 +177,13 @@ function! hi#utils#WindowSplit()
 
     silent exec(l:cmd)
 
-    let w:split = l:split
     let w:winSize = l:winSize - 2
 endfunction
 
 
 function! hi#utils#WindowSplitEnd()
     if exists('w:split')
-        if w:split == 1
+        if w:split == 1 || w:split == "horizontal"
             if exists('w:winSize')
                 let lines = line('$')
                 if l:lines <= w:winSize

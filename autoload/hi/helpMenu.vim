@@ -97,6 +97,8 @@ function! hi#helpMenu#LaunchCommandMenu(...)
     let l:cmdList += [ "Hiv LEVEL             : show debug traces" ]
     let l:cmdList += [ "Hih                   : show command abridged help" ]
 
+    let l:searchStr = ""
+
     " Filter commands to be displayed:
     if l:filter != ""
         let l:cmdFilterList = []
@@ -107,6 +109,14 @@ function! hi#helpMenu#LaunchCommandMenu(...)
                     let l:cmdFilterList += [ l:cmd ]
                 endif
             endfor
+        endfor
+
+        " Search the filter words on screen.
+        for l:filt in split(l:filter)
+            if l:searchStr != ""
+                let l:searchStr .= "\\\|"
+            endif
+            let l:searchStr .= l:filt
         endfor
     else
         let l:cmdFilterList = l:cmdList
@@ -119,6 +129,21 @@ function! hi#helpMenu#LaunchCommandMenu(...)
     call hi#menu#AddCommentLineColor("!", "w4*")
     call hi#menu#ShowLineNumbers("no")
     call hi#menu#OpenMenu(l:header, l:cmdFilterList, l:callback, "")
+
+    " Use Search command to highlight the filter strings.
+    if l:searchStr != ""
+        let @/ = l:searchStr
+        execute "normal /\<cr>"
+
+        let l:n = 0
+        " search(pattern, W:do not wrap to the start, 0:end line not set, 200msec timeout).
+        while search(l:searchStr, 'W', 0, 200) != 0
+            let l:n += 1
+        endwhile
+        silent! normal ggn
+        redraw
+        echo "[hi.vim] Hi ".l:filter.". Found ".l:n." matches."
+    endif
 endfunction
 
 

@@ -29,7 +29,7 @@ function! hi#menu#OpenMenu(headerList, optionsList, callbackFunction, selectText
     if s:hiMenuforceWindowPos != ""
         let w:winSize = winheight(0)
         let w:split = s:hiMenuforceWindowPos
-        echom "hi#menu#OpenMenu w:split:".w:split
+        "echom "hi#menu#OpenMenu w:split:".w:split
         call hi#utils#WindowSplit()
     else
         if s:hiMenuDefaultWindowPos != ""
@@ -141,9 +141,13 @@ function! hi#menu#OpenMenu(headerList, optionsList, callbackFunction, selectText
     setl nomodifiable
     silent! exec '0file | file _hi_menu_'
 
-    " Move window to bottom
-    if s:hiMenuDefaultWindowPos != "" || s:hiMenuforceWindowPos != ""
-        wincmd J
+    " On horizontal split. Move window to bottom
+    if s:hiMenuDefaultWindowPos != ""
+        if exists("w:split")
+            if w:split == "1" || w:split == "horizontal"
+                wincmd J
+            endif
+        endif
     endif
 
     "----------------------------------
